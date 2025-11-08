@@ -44,6 +44,9 @@ let package = Package(
             name: "DDCMenu",
             dependencies: ["SwiftDDC"],
             path: "Sources/DDCMenu"
-        )
+        ),
+        .testTarget(
+            name: "SwiftDDCTests",
+            dependencies: ["SwiftDDC"])
     ]
 )
