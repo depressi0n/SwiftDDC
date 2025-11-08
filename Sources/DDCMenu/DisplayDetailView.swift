@@ -3,6 +3,7 @@ import SwiftDDC
 
 struct DisplayDetailView: View {
     let display: DDCDisplay
+    @EnvironmentObject var displayManager: DisplayManager
 
     @State private var brightness: Float = 0
     @State private var contrast: Float = 0
@@ -10,6 +11,8 @@ struct DisplayDetailView: View {
     @State private var currentInputID: UInt16?
     @State private var unknownInput: InputSource?
     @State private var isInitialLoad = true
+    @State private var isSwitchingInput: Bool = false
+    @State private var pendingInputID: UInt16?
 
     private var allAvailableInputs: [InputSource] {
         var inputs = commonInputs
@@ -35,28 +38,32 @@ struct DisplayDetailView: View {
                 })
             }
 
-            // Refactored Input Source Picker
-            Picker(selection: $currentInputID) {
-                ForEach(allAvailableInputs) { input in
-                    Text(input.name).tag(input.value as UInt16?)
+            // Input Source Selector
+            HStack {
+                Image(systemName: "cable.connector")
+                Text("Input:")
+                Spacer()
+                HStack(spacing: 6) {
+                    ForEach(allAvailableInputs) { input in
+                        InputSourceButton(
+                            input: input,
+                            isActive: currentInputID == input.value,
+                            isPending: pendingInputID == input.value,
+                            isDisabled: isSwitchingInput,
+                            action: {
+                                guard !isInitialLoad, !isSwitchingInput, currentInputID != input.value else { return }
+                                switchInput(to: input.value)
+                            }
+                        )
+                    }
                 }
-            } label: {
-                HStack {
-                    Image(systemName: "cable.connector")
-                    Text("Input")
-                    Spacer()
-                    Text(allAvailableInputs.first { $0.value == currentInputID }?.name ?? "Reading...")
-                        .foregroundColor(.secondary)
-                }
-            }
-            .pickerStyle(.menu)
-            .onChange(of: currentInputID) { newValue in
-                guard !isInitialLoad, let value = newValue else { return }
-                writeVCP(code: 0x60, value: value)
             }
         }
         .padding()
         .onAppear(perform: readInitialValues)
+        .onReceive(displayManager.refreshPublisher) { _ in
+            readInitialValues()
+        }
     }
 
     private func readInitialValues() {
@@ -92,5 +99,61 @@ struct DisplayDetailView: View {
         DispatchQueue.global(qos: .userInitiated).async {
             _ = display.service?.write(command: code, value: value)
         }
+    }
+    
+    private func switchInput(to inputID: UInt16) {
+        isSwitchingInput = true
+        pendingInputID = inputID
+        
+        DispatchQueue.global(qos: .userInitiated).async {
+            _ = display.service?.write(command: 0x60, value: inputID)
+            
+            DispatchQueue.main.async {
+                self.currentInputID = inputID
+                self.isSwitchingInput = false
+                self.pendingInputID = nil
+            }
+        }
+    }
+}
+
+// MARK: - Input Source Button Component
+
+private struct InputSourceButton: View {
+    let input: InputSource
+    let isActive: Bool
+    let isPending: Bool
+    let isDisabled: Bool
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 4) {
+                if isPending {
+                    ProgressView()
+                        .controlSize(.small)
+                        .frame(width: 12, height: 12)
+                }
+                Text(input.name)
+                    .font(.system(size: 11))
+            }
+            .padding(.horizontal, 8)
+            .padding(.vertical, 4)
+            .background(backgroundColor)
+            .foregroundColor(textColor)
+            .cornerRadius(6)
+        }
+        .disabled(isDisabled)
+        .buttonStyle(.plain)
+    }
+    
+    private var backgroundColor: Color {
+        if isActive { return .accentColor }
+        return Color.primary.opacity(0.1)
+    }
+    
+    private var textColor: Color {
+        if isActive { return .white }
+        return .primary
     }
 }

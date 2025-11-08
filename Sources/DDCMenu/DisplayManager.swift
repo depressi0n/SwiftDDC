@@ -1,10 +1,13 @@
 import Foundation
 import SwiftDDC
 import CoreGraphics
+import Combine
 
 class DisplayManager: ObservableObject {
     @Published var mainDisplay: DDCDisplay?
     @Published var otherDisplays: [DDCDisplay] = []
+    
+    let refreshPublisher = PassthroughSubject<Void, Never>()
 
     init() {
         self.refreshDisplays()
@@ -32,6 +35,7 @@ class DisplayManager: ObservableObject {
         DispatchQueue.main.async {
             self.mainDisplay = foundMainDisplay
             self.otherDisplays = allDisplays.filter { $0.edidUUID != foundMainDisplay?.edidUUID }
+            self.refreshPublisher.send()
         }
     }
 }
