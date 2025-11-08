@@ -19,7 +19,7 @@ jobs:
       run: swift test --verbose
     
     - name: Build release DDCMenu
-      run: xcodebuild -scheme DDCMenu -configuration Release build CODE_SIGNING_ALLOWED=NO
+      run: xcodebuild -scheme DDCMenu -configuration Release -destination 'generic/platform=macOS' build CODE_SIGNING_ALLOWED=NO
 
     - name: Package release assets
       run: |
