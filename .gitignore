@@ -1,2 +1,7 @@
+.DS_Store
+
 .build/
 .vscode
+.swiftpm
+DDCMenu.zip
+DDCMenu.app

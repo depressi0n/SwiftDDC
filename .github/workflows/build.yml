@@ -18,13 +18,19 @@ jobs:
     - name: Run tests
       run: swift test --verbose
     
-    - name: Build release
-      run: swift build -c release
-    
+    - name: Build release DDCMenu
+      run: xcodebuild -scheme DDCMenu -configuration Release build CODE_SIGNING_ALLOWED=NO
+
     - name: Package release assets
       run: |
+        APP_PATH=$(find . -name "DDCMenu.app" | head -n 1)
+        if [ -z "$APP_PATH" ]; then
+          echo "DDCMenu.app not found!"
+          exit 1
+        fi
+        ditto -c -k --sequesterRsrc --keepParent "$APP_PATH" ../../DDCMenu.zip
+        
         cd .build/release
-        zip -r ../../DDCMenu.zip DDCMenu.app
         zip -j ../../ddc.zip ddc
     
     - name: Upload release assets
