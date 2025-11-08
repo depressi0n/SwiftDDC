@@ -17,16 +17,15 @@ class DisplayManager: ObservableObject {
         // Find the DDCDisplay that corresponds to the main display ID
         // We need to get CoreDisplay info to bridge the gap.
         var foundMainDisplay: DDCDisplay?
-        for display in allDisplays {
-            // This is a simplified matching logic. A real implementation might need
-            // to be more robust, e.g., by matching serial numbers or EDID UUIDs.
-            // For now, we assume a simple correlation might exist via properties.
-            // A better way is to get CGDirectDisplayID from IORegistry if possible.
-            // Let's find the DisplayInfo for the main display first.
-            if let mainDisplayInfo = DisplayInfo(displayID: mainDisplayID),
-               mainDisplayInfo.uuid == display.edidUUID {
-                foundMainDisplay = display
-                break
+        if let mainDisplayInfo = DisplayInfo(displayID: mainDisplayID) {
+            // Primary matching strategy: EDID UUID
+            if let mainUUID = mainDisplayInfo.uuid {
+                foundMainDisplay = allDisplays.first { $0.edidUUID == mainUUID }
+            }
+
+            // Fallback strategy: Serial Number
+            if foundMainDisplay == nil, let mainSerial = mainDisplayInfo.serialNumber {
+                foundMainDisplay = allDisplays.first { $0.serialNumber == mainSerial }
             }
         }
 

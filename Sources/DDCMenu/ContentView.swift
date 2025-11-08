@@ -33,7 +33,7 @@ struct ContentView: View {
                             DisclosureGroup {
                                 DisplayDetailView(display: display)
                             } label: {
-                                Text(display.productName ?? "Unknown Display")
+                                Text(display.productName)
                                     .fontWeight(.bold)
                             }
                             .padding(.horizontal)

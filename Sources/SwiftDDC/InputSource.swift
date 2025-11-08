@@ -1,7 +1,7 @@
 import Foundation
 
 public struct InputSource: Identifiable, Hashable {
-    public let id = UUID()
+    public var id: UInt16 { value }
     public let name: String
     public let value: UInt16
 
