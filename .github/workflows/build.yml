@@ -25,8 +25,7 @@ jobs:
       run: |
         chmod +x scripts/build-app.sh
         ./scripts/build-app.sh
-        cd .build/release
-        zip -j ../../ddc.zip ddc
+        zip -j ddc.zip .build/release/ddc
     
     - name: Upload release assets
       uses: actions/upload-artifact@v4
