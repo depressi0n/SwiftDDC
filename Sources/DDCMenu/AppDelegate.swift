@@ -29,6 +29,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             if popover.isShown {
                 popover.performClose(sender)
             } else {
+                displayManager.refreshDisplays()
                 popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
                 popover.contentViewController?.view.window?.becomeKey()
             }

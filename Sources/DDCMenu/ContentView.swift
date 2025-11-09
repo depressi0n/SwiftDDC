@@ -48,6 +48,9 @@ struct ContentView: View {
                 Button("Refresh") {
                     displayManager.refreshDisplays()
                 }
+                Text("(Auto: 5s)")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
                 Spacer()
                 Button("Quit") {
                     NSApplication.shared.terminate(nil)
